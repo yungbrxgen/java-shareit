@@ -35,14 +35,14 @@ public class ItemRepositoryImpl implements ItemRepository {
     @Override
     public List<Item> findByOwnerId(Long id) {
         return items.values().stream()
-                .filter(item -> item.getOwnerId() != null && item.getOwnerId().equals(id))
+                .filter(item -> item.getOwner().getId() != null && item.getOwner().getId().equals(id))
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Item> findByRequestId(Long id) {
         return items.values().stream()
-                .filter(item -> item.getRequestId() != null && item.getRequestId().equals(id))
+                .filter(item -> item.getRequest().getId() != null && item.getRequest().getId().equals(id))
                 .collect(Collectors.toList());
     }
 

@@ -11,8 +11,10 @@ import ru.practicum.shareit.interfaces.Update;
 @Builder
 public class UserDto {
     private Long id;
+
     @NotBlank(message = "Имя не может быть пустым", groups = Create.class)
     private String name;
+
     @NotBlank(message = "Email не может быть пустым", groups = Create.class)
     @Email(message = "Некорректный формат email", groups = {Create.class, Update.class})
     private String email;
