@@ -130,8 +130,8 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookings;
 
         switch (state) {
-            case ALL -> bookings = bookingRepository.
-                    findAllByBookerIdOrderByStartDesc(userId);
+            case ALL -> bookings = bookingRepository
+                    .findAllByBookerIdOrderByStartDesc(userId);
             case CURRENT -> bookings = bookingRepository
                     .findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now);
             case PAST -> bookings = bookingRepository
