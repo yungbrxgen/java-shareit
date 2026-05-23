@@ -4,7 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.interfaces.Create;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -20,4 +23,8 @@ public class ItemDto {
     @NotNull(message = "Статус доступности должен быть указан", groups = Create.class)
     private Boolean available;
     private Long requestId;
+
+    private List<CommentDto> comments;
+    private BookingShortDto lastBooking;
+    private BookingShortDto nextBooking;
 }
