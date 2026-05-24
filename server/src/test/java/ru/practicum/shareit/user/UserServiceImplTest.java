@@ -93,4 +93,29 @@ public class UserServiceImplTest {
         userService.delete(1L);
         verify(userRepository).deleteById(1L);
     }
+
+    @Test
+    void update_whenUserExists_thenUpdateFields() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userMapper.toUserDto(any(User.class))).thenReturn(userDto);
+
+        UserDto patchDto = UserDto.builder()
+                .name("New Name")
+                .email("new@mail.ru")
+                .build();
+
+        UserDto result = userService.update(1L, patchDto);
+
+        assertNotNull(result);
+        verify(userRepository).save(any());
+    }
+
+    @Test
+    void update_whenUserNotFound_thenThrowNotFoundException() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> userService.update(99L, userDto));
+        verify(userRepository, never()).save(any());
+    }
 }
