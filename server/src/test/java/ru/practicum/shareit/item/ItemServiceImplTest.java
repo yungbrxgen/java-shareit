@@ -121,14 +121,18 @@ public class ItemServiceImplTest {
 
     @Test
     void getAllByOwner_success() {
-        when(itemRepository.findAllByOwnerId(1L)).thenReturn(List.of(item));
+        when(itemRepository.findAllByOwnerIdOrderByIdAsc(1L)).thenReturn(List.of(item));
+        when(commentRepository.findAllByItemIdIn(anyList())).thenReturn(Collections.emptyList());
+        when(bookingRepository.findAllByItemIdInAndStatus(anyList(), any())).thenReturn(Collections.emptyList());
         when(itemMapper.toItemDto(any())).thenReturn(itemDto);
-        when(commentRepository.findAllByItemId(anyLong())).thenReturn(Collections.emptyList());
 
         List<ItemDto> result = itemService.getAllByOwner(1L);
 
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
+        verify(itemRepository).findAllByOwnerIdOrderByIdAsc(1L);
+        verify(commentRepository).findAllByItemIdIn(anyList());
+        verify(bookingRepository).findAllByItemIdInAndStatus(anyList(), any());
     }
 
     @Test

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -90,15 +91,50 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getAllByOwner(Long ownerId) {
-        return itemRepository.findAllByOwnerId(ownerId).stream()
-                .map(itemMapper::toItemDto)
-                .peek(itemDto -> {
-                    itemDto.setComments(commentRepository.findAllByItemId(itemDto.getId()).stream()
-                            .map(commentMapper::toCommentDto)
-                            .collect(Collectors.toList()));
-                    setBookings(itemDto);
+        List<Item> items = itemRepository.findAllByOwnerIdOrderByIdAsc(ownerId);
+        if (items.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> itemIds = items.stream()
+                .map(Item::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, List<CommentDto>> commentsMap = commentRepository.findAllByItemIdIn(itemIds).stream()
+                .collect(Collectors.groupingBy(
+                        comment -> comment.getItem().getId(),
+                        Collectors.mapping(commentMapper::toCommentDto, Collectors.toList())
+                ));
+
+        Map<Long, List<Booking>> bookingsMap = bookingRepository.findAllByItemIdInAndStatus(itemIds, BookingStatus.APPROVED).stream()
+                .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
+
+        LocalDateTime now = LocalDateTime.now();
+
+        return items.stream()
+                .map(item -> {
+                    ItemDto itemDto = itemMapper.toItemDto(item);
+
+                    itemDto.setComments(commentsMap.getOrDefault(item.getId(), Collections.emptyList()));
+
+                    List<Booking> itemBookings = bookingsMap.getOrDefault(item.getId(), Collections.emptyList());
+
+                    itemDto.setLastBooking(itemBookings.stream()
+                            .filter(b -> b.getStart().isBefore(now))
+                            .max(Comparator.comparing(Booking::getEnd))
+                            .map(b -> new BookingShortDto(b.getId(), b.getBooker().getId()))
+                            .orElse(null)
+                    );
+
+                    itemDto.setNextBooking(itemBookings.stream()
+                            .filter(b -> b.getStart().isAfter(now))
+                            .min(Comparator.comparing(Booking::getStart))
+                            .map(b -> new BookingShortDto(b.getId(), b.getBooker().getId()))
+                            .orElse(null)
+                    );
+
+                    return itemDto;
                 })
-                .sorted(Comparator.comparing(ItemDto::getId))
                 .collect(Collectors.toList());
     }
 
