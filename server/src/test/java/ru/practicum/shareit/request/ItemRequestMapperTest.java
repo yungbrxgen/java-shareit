@@ -1,48 +1,25 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class MappersUnitTest {
+public class ItemRequestMapperTest {
 
-    private final ItemMapper itemMapper = Mappers.getMapper(ItemMapper.class);
     private final ItemRequestMapper requestMapper = Mappers.getMapper(ItemRequestMapper.class);
 
     @Test
-    void testItemMapper_toItemDto() {
-        User owner = new User(1L, "Ivan", "ivan@mail.ru");
-        Item item = Item.builder()
-                .id(10L)
-                .name("Лопата")
-                .description("Садовая")
-                .available(true)
-                .owner(owner)
-                .build();
-
-        ItemDto dto = itemMapper.toItemDto(item);
-
-        assertNotNull(dto);
-        assertEquals(10L, dto.getId());
-        assertEquals("Лопата", dto.getName());
-        assertEquals("Садовая", dto.getDescription());
-        assertEquals(true, dto.getAvailable());
-    }
-
-    @Test
-    void testItemRequestMapper_toItemRequest() {
+    void toItemRequest_shouldMapFieldsCorrectly() {
         User requestor = new User(2L, "Petr", "petr@mail.ru");
         ItemRequestDto dto = ItemRequestDto.builder()
                 .id(1L)
@@ -60,7 +37,7 @@ class MappersUnitTest {
     }
 
     @Test
-    void testItemRequestMapper_toItemRequestDto() {
+    void toItemRequestDto_shouldMapWithItemsList() {
         User requestor = new User(2L, "Petr", "petr@mail.ru");
         ItemRequest request = ItemRequest.builder()
                 .id(5L)
@@ -69,12 +46,14 @@ class MappersUnitTest {
                 .created(LocalDateTime.now())
                 .build();
 
-        ItemRequestDto dto = requestMapper.toItemRequestDto(request, Collections.emptyList());
+        ItemDto itemDto = ItemDto.builder().id(10L).name("Генератор").build();
+
+        ItemRequestDto dto = requestMapper.toItemRequestDto(request, List.of(itemDto));
 
         assertNotNull(dto);
         assertEquals(5L, dto.getId());
         assertEquals("Нужен генератор", dto.getDescription());
-        assertNotNull(dto.getItems());
-        assertEquals(0, dto.getItems().size());
+        assertEquals(1, dto.getItems().size());
+        assertEquals(10L, dto.getItems().get(0).getId());
     }
 }
